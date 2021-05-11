@@ -1,0 +1,7 @@
+*.log
+
+/reports
+
+__pycache__/
+
+/resources/utils/__pycache__/

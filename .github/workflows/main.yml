@@ -1,0 +1,41 @@
+name: Integração Contínua
+
+on:
+  pull_request:
+
+jobs:
+  e2e_test:
+    name: Executar testes e2e no site da Orbia
+    runs-on: windows-latest
+
+    steps:
+      - name: Realizar checkout no repositório dos tests
+        uses: actions/checkout@v2
+
+      - name: Instalar Chrome
+        uses: browser-actions/setup-chrome@latest
+
+      - run: (Get-Item (Get-Command chrome).Source).VersionInfo.ProductVersion
+
+      - uses: nanasess/setup-chromedriver@master
+      - run: chromedriver --url-base=/wd/hub &
+
+      - name: Criar a pasta de reports
+        run: |
+          cd ${{ github.workspace }}/
+          mkdir reports
+          
+      - name: Instalar as dependências do Robot Framework
+        run: |
+          cd ${{ github.workspace }}/
+          pip install -r requirements.txt
+
+      - name: Executar os tests e2e
+        run: robot --outputdir ${{ github.workspace }}/reports --loglevel TRACE --pythonpath ${{ github.workspace }}/resources  ${{ github.workspace }}/tests
+
+      - name: Upload test reports
+        uses: actions/upload-artifact@v1
+        if: always()
+        with:
+          name: reports
+          path: ${{ github.workspace }}/reports
